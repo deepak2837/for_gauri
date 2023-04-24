@@ -1,0 +1,75 @@
+const User = require('../models/userModel.js');
+
+const getFilteredUsers = async (req, res) => {
+  const { criteria } = req.query;
+  console.log(req.query)
+  let filter = {};
+
+  switch (criteria) {
+    case '1':
+        filter = [
+            { $match: { income: { $lt: '$5 USD' }, car: { $in: ['BMW', 'Mercedes'] } } }
+          ];
+          
+      break;
+    case '2':
+        filter = [
+            { $match: { gender: 'Male', phone_price: { $gt: '10000' } } }
+          ];
+      break;
+    case '3':
+        filter = [
+          { $match: { 
+            last_name: /^M/,
+            quote: { $exists: true, $regex: /^.{16,}$/ },
+            email: { $regex: /^.*M.*$/i }
+          }}
+          ];
+          
+          
+      break;
+      case '4':
+        filter = [
+          { $match: { $and: [{ car: { $in: ['BMW', 'Mercedes', 'Audi'] } }, { email: { $not: /[\d]/ } }] } }
+        ];
+        break;
+      
+        case '5':
+            filter = [
+                
+                  {
+                    $group: {
+                      _id: "$city",
+                      count: { $sum: 1 },
+                      income: { $avg: { $convert: { input: "$income", to: "decimal" } } }
+                    }
+                  }
+                  
+                ,
+                {
+                  $sort: { count: -1 }
+                },
+                {
+                  $limit: 10
+                }
+              ];
+              
+              
+  break;
+
+          
+      
+    default:
+      filter = {};
+  }
+
+  try {
+    const data = await User.aggregate([filter]);
+    res.json(data);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+module.exports = { getFilteredUsers };

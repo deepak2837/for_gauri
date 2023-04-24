@@ -1,0 +1,8 @@
+const express = require('express');
+const router = express.Router();
+const { getFilteredUsers } = require('../controllers/userController');
+
+// GET /api/users?criteria=:criteriaId
+router.get('/', getFilteredUsers);
+
+module.exports = router;
